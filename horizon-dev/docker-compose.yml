@@ -1,0 +1,44 @@
+version: '3.8'  # Using a more recent version for better features
+services:
+  n8n:
+    restart: always
+    image: n8nio/n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=verysecurepassword
+      - N8N_HOST=horizon-dev.net
+      - N8N_PROTOCOL=https
+      - N8N_ENCRYPTION_KEY=your-encryption-key-here
+      - WEBHOOK_TUNNEL_URL=https://horizon-dev.net
+      - WEBHOOK_URL=https://horizon-dev.net
+      - N8N_EXTERNAL_URL=https://horizon-dev.net
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres  # Name of the PostgreSQL service in Docker Compose
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=securepassword
+      - EXECUTIONS_MODE=regular
+      - NODE_FUNCTION_ALLOW_EXTERNAL=nodemailer
+      - N8N_PUSH_BACKEND=websocket
+      - N8N_PAYLOAD_SIZE_MAX=268435456
+
+    depends_on:
+      - postgres  # Ensures PostgreSQL starts before n8n
+    volumes:
+      - ~/.n8n:/root/.n8n
+
+  postgres:
+    restart: always
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=n8n
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=securepassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist PostgreSQL data
+
+volumes:
+  postgres_data:  # Define the volume for persisting database data
