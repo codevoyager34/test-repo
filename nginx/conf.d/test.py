@@ -30,3 +30,45 @@ if __name__ == "__main__":
        sys.exit(1)
        
    compare_files(sys.argv[1], sys.argv[2])
+
+
+
+
+
+#################################
+
+
+
+
+-- First check affected rows:
+SELECT COUNT(*) as rows_to_move 
+FROM new_application_property 
+WHERE property_name ILIKE '%password%';
+
+-- See which properties will be moved:
+SELECT DISTINCT property_name 
+FROM new_application_property 
+WHERE property_name ILIKE '%password%';
+
+BEGIN;
+
+CREATE TABLE temp_password AS 
+SELECT * FROM new_application_property WHERE FALSE;
+
+INSERT INTO temp_password
+SELECT * FROM new_application_property 
+WHERE property_name ILIKE '%password%';
+
+DELETE FROM new_application_property 
+WHERE property_name ILIKE '%password%';
+
+COMMIT;
+
+-- Rollback if needed:
+/*
+BEGIN;
+   INSERT INTO new_application_property 
+   SELECT * FROM temp_password;
+   DROP TABLE temp_password;
+COMMIT;
+*/
