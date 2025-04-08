@@ -1,15 +1,22 @@
 import csv
 
 def load_replacements(csv_path):
-    replacements = {}
-    with open(csv_path, mode='r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if len(row) >= 2 and row[0] and row[1]:
-                replacements[row[0]] = row[1]
-            if len(row) >= 4 and row[2] and row[3]:
-                replacements[row[2]] = row[3]
+    replacements = []
+    with open(csv_path, mode='r', encoding='utf-8-sig', errors='replace') as f:
+        cleaned_lines = (line.replace('\x00', '') for line in f)
+        reader = csv.reader(cleaned_lines)
+        for idx, row in enumerate(reader, start=1):
+            try:
+                # First pair: column 0 → column 1
+                if len(row) > 1 and row[0].strip() and row[1].strip():
+                    replacements.append((row[0].strip(), row[1].strip()))
+                # Second pair: column 2 → column 3
+                if len(row) > 3 and row[2].strip() and row[3].strip():
+                    replacements.append((row[2].strip(), row[3].strip()))
+            except Exception as e:
+                print(f"⚠️ Skipping row {idx} due to error: {e}")
     return replacements
+
 
 def apply_replacements(text, replacements):
     for find, replace in replacements.items():
